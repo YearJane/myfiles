@@ -4,6 +4,9 @@
          xmlns:web="http://java.sun.com/xml/ns/javaee" 
          xsi:schemaLocation="http://java.sun.com/xml/ns/javaee http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd" version="2.5">
 	<!-- 设置编码格式为UTF-8-->
+	<welcome-file-list>
+	  <welcome-file>index.jsp</welcome-file>
+	</welcome-file-list>
 	 <filter>  
         <filter-name>CharacterEncodingFilter</filter-name>  
           <filter-class>org.springframework.web.filter.CharacterEncodingFilter</filter-class>

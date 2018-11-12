@@ -1,0 +1,136 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.mapper.FilesMapper">
+<cache/>
+
+   <resultMap type="com.entity.Files" id="file">
+     <association property="filetype" select="com.mapper.FileTypeMapper.selectFiletypeBytypeid" 
+     column="typeid" fetchType="eager">
+     </association>
+   </resultMap>
+
+	<!-- 文件的上传 -->
+	<insert id="fileUpload">
+		insert into files(uid,reallyname,fakename,typeid,weight,intime,introduce)
+		values
+		(#{file.uid},#{file.reallyname},#{file.fakename},#{file.filetype.typeid},#{file.weight},#{file.intime},#{file.introduce})
+	</insert>
+
+	<!-- 文件的查询 -->
+	<select id="selectFile" resultMap="file">
+		select * from files where fid=#{fid}
+	</select>
+
+	<!-- 文件的删除，移入回收站 ,可以进行批量删除 -->
+	<update id="fileDelete">
+		update files set isrecycle =1 where fid in
+		<foreach collection="fids" open="(" separator="," close=")"
+			item="fid">
+			#{fid}
+		</foreach>
+	</update>
+
+	<!-- 真正的删除该文件，无法恢复，如果传入的参数为空，则清空回收站 -->
+	<delete id="fileDeleteReally">
+		delete from files where uid=#{uid}
+		<choose>
+			<when test="null !=fids">
+				and isrecycle =1 and fid in
+				<foreach collection="fids" open="(" separator="," close=")"
+					item="fid">
+					#{fid}
+				</foreach>
+			</when>
+			<otherwise>
+				and isrecycle =1
+			</otherwise>
+		</choose>
+	</delete>
+	
+	<!-- 根据文件类型查询分页 -->
+	<select id="selectFileBytype" resultMap="file">
+	  select * from files where uid=#{uid} and typeid=#{typeid} and isrecycle!=1 order by weight desc limit #{fontindex},#{pagesize}
+	</select>
+	
+	<!-- 首次进入我的文件，依照权重排列，分页 -->
+	<select id="selectFileByWeight" resultMap="file">
+	  select * from files where uid=#{uid}  and isrecycle!=1 order by weight desc limit #{fontindex},#{pagesize} 
+	</select>
+	
+	<!-- 查询用户文件的总记录数-->
+	
+	<select id="selectTotalFiles" resultType="integer">
+	   select count(fid) from files where uid=#{uid} and isrecycle!=1 
+	   <if test="null !=typeid">
+	   and typeid=#{typeid}
+	   </if>
+	   
+	</select>
+	
+	<!-- 查询用户文件的总记录数-->
+	
+	<select id="selectTotalFiles1" resultType="integer">
+	   select count(fid) from files where uid=#{uid} and isrecycle!=1 
+	   <if test="null !=vague">
+	   and fakename like '%${vague}%' or introduce like '%${vague}%'
+	   </if>
+	</select>
+	
+	<!-- 模糊查询，分页 -->
+	<select id="selectFileByVague" resultMap="file" >
+	  select * from files where uid=#{uid} and isrecycle!=1 and fakename like '%${vague}%' or introduce like '%${vague}%' order by weight desc limit #{fontindex},#{pagesize}
+	</select>
+	
+	<!-- 回收站的恢复功能 -->
+	<update id="resumeRecyle">
+	   update files set isrecycle =0 where fid in
+		<foreach collection="fids" open="(" separator="," close=")"
+			item="fid">
+			#{fid}
+		</foreach>
+	</update>
+	
+	<!-- 渲染回收站 -->
+	<select id="selectFileRecycle" resultMap="file">
+	   select * from files where uid=#{uid}  and isrecycle=1 order by weight desc limit #{fontindex},#{pagesize} 
+	
+	</select>
+	<!-- 查询用户回收站的总记录数 -->
+	<select id="selectTotalFilesRecycle" resultType="integer">
+	   select count(fid) from files where uid=#{uid} and isrecycle=1
+	</select>
+	
+	<!-- 批量查询fid的Files -->
+	<select id="selectFilesByfids" resultMap="file">
+		select * from files where fid in
+		<foreach collection="fids" open="(" separator=","  close=")" item="fids">
+		  #{fids}
+		</foreach>
+	</select>
+	<!-- 更新文件的信息 -->
+	<update id="updateFile">
+	   update files 
+	   <set>
+	     <if test="null !=file.filetype.typeid">
+	     typeid=#{file.filetype.typeid},
+	     </if>
+	     <if test="null !=file.introduce">
+	     introduce=#{file.introduce},
+	     </if>
+	     <if test="null !=file.weight">
+	     weight=#{file.weight},
+	     </if>
+	   </set>
+	   <where>
+	      fid=#{file.fid}
+	   </where>
+	</update>
+	
+	<!-- 用次刷新二级缓存 -->
+	
+	<update id="reloadCache">
+	 update files set fid=fid where fid=69
+	</update>
+	
+</mapper>

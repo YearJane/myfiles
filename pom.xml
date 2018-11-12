@@ -186,7 +186,7 @@
   
   <!-- 统一Maven和JDK版本 -->
       <build>
-        <finalName>ssmmodel</finalName>
+        <finalName>myfiles</finalName>
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>

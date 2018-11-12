@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.mapper.FileTypeMapper">
+<cache/>
+    <!-- 根据typeid或者typename查一行记录,如果typeid和typename都为空则查询整张表 -->
+    <select id="selectFileTypes" resultType="fileType">
+       select * from filetype where uid=#{uid}
+       <choose>
+          <when test="null != typeid">
+             and typeid=#{typeid}
+          </when>
+          
+          <when test="null != typename">
+          and typename=#{typename}
+          </when>
+          <otherwise>
+          
+          </otherwise>
+       </choose>
+    </select>
+    <!-- 新增类型 -->
+    <insert id="addFileType">
+       insert into filetype(typename,uid) values(#{typename},#{uid})
+    </insert>
+    
+    <!-- 修改类型名称 -->
+    <update id="updateFiletype">
+      update filetype set typename=#{filetype.typename} where typeid=#{filetype.typeid}
+    </update>
+    
+    <!-- 删除类型  ，该类型下的文件会被移动到默认类型中-->
+    <update id="moveFiles">
+      update files set typeid=#{newtypeid} where typeid=#{oldtypeid} 
+    </update>
+    
+    <!--删除类型 -->
+    <delete id="deleteFiletype">
+       delete from filetype where typeid=#{typeid}
+    </delete>
+    <!-- 根据类型查Filetype -->
+    <select id="selectFiletypeBytypeid" resultType="fileType">
+       select  * from filetype where typeid=#{typeid}
+    </select>
+</mapper>
